@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,16 @@ import { GEMINI_API_KEY } from "./key";
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const BATCH_SIZE = 5; // Number of questions to generate at once
 
+// Function to store completed test
+const storeCompletedTest = (testData) => {
+  const completedTests = JSON.parse(localStorage.getItem('completedTests') || '[]');
+  completedTests.push(testData);
+  localStorage.setItem('completedTests', JSON.stringify(completedTests));
+};
+
 export default function TestingPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { title, description, level, estimatedTime, questionCount } = location.state || {};
 
   // Add validation and default values
@@ -179,9 +187,39 @@ export default function TestingPage() {
     }
   };
 
-  const score = questions.length > 0
-    ? answers.reduce((acc, ans, idx) => ans === questions[idx]?.correct ? acc + 1 : acc, 0)
-    : 0;
+  const handleCompleteTest = () => {
+    const score = questions.length > 0
+      ? answers.reduce((acc, ans, idx) => ans === questions[idx]?.correct ? acc + 1 : acc, 0)
+      : 0;
+    
+    const scorePercentage = Math.round((score / questions.length) * 100);
+    
+    // Determine badge based on score
+    let badge = "Beginner";
+    if (scorePercentage >= 90) {
+      badge = "Expert";
+    } else if (scorePercentage >= 70) {
+      badge = "Proficient";
+    } else if (scorePercentage >= 50) {
+      badge = "Intermediate";
+    }
+
+    const completedTestData = {
+      id: Date.now(), // Unique ID
+      title: title,
+      description: description,
+      score: scorePercentage,
+      completedOn: new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      badge: badge
+    };
+
+    storeCompletedTest(completedTestData);
+    navigate('/test', { state: { activeTab: 'completed' } });
+  };
 
   if (!started) {
     return (
@@ -294,7 +332,7 @@ export default function TestingPage() {
           <CardHeader>
             <CardTitle>Your Score</CardTitle>
             <CardDescription>
-              You scored {score} out of {questions.length}
+              You scored {answers.filter((answer, i) => answer === questions[i].correct).length} out of {questions.length}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -316,7 +354,7 @@ export default function TestingPage() {
               Retake Test
             </Button>
             <Button 
-              onClick={() => window.location.href = '/test'}
+              onClick={handleCompleteTest}
               className="flex-1 bg-[#9b87f5] hover:bg-[#8B5CF6] text-white"
             >
               Complete Test

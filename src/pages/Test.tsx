@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { 
   CheckCircle, 
   BookOpen, 
@@ -102,7 +102,17 @@ const Test = () => {
   const [showNotFoundDialog, setShowNotFoundDialog] = useState(false);
   const [requestedSkill, setRequestedSkill] = useState("");
   const { toast } = useToast();
+  const location = useLocation();
   
+  // Get completed tests from localStorage
+  const [completedTests, setCompletedTests] = useState(() => {
+    const savedTests = JSON.parse(localStorage.getItem('completedTests') || '[]');
+    return savedTests;
+  });
+
+  // Set active tab based on navigation state
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || "explore");
+
   const filteredTests = allTests.filter(test => {
     const matchesSearch = test.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           test.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -150,7 +160,7 @@ const Test = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="explore">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="explore">Explore Tests</TabsTrigger>
             <TabsTrigger value="in-progress">In Progress</TabsTrigger>
@@ -302,7 +312,7 @@ const Test = () => {
                 </p>
                 <Button 
                   variant="outline" 
-                  onClick={() => document.querySelector('button[value="explore"]')?.dispatchEvent(new Event('click'))}
+                  onClick={() => setActiveTab("explore")}
                 >
                   Browse Available Tests
                 </Button>
@@ -359,10 +369,21 @@ const Test = () => {
                         <BarChart className="mr-2 h-4 w-4" />
                         View Details
                       </Button>
-                      <Button className="flex-1">
-                        <TestTube className="mr-2 h-4 w-4" />
-                        Retake Test
-                      </Button>
+                      <Link 
+                        to="/testing" 
+                        state={{
+                          title: test.title,
+                          description: test.description,
+                          level: test.badge,
+                          estimatedTime: "30 min",
+                          questionCount: 10
+                        }}
+                      >
+                        <Button className="flex-1">
+                          <TestTube className="mr-2 h-4 w-4" />
+                          Retake Test
+                        </Button>
+                      </Link>
                     </CardFooter>
                   </Card>
                 ))}
@@ -376,7 +397,7 @@ const Test = () => {
                 </p>
                 <Button 
                   variant="outline" 
-                  onClick={() => document.querySelector('button[value="explore"]')?.dispatchEvent(new Event('click'))}
+                  onClick={() => setActiveTab("explore")}
                 >
                   Browse Available Tests
                 </Button>
