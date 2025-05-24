@@ -6,10 +6,27 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export interface Profile {
+  id: string;
+  user_id: string;
+  name: string;
+  role: string;
+  bio: string;
+  email: string;
+  location: string;
+  avatar_url?: string;
+  updated_at: string;
+  created_at: string;
+}
+
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: Profile;
+        Insert: Omit<Profile, 'id' | 'created_at'>;
+        Update: Partial<Omit<Profile, 'id' | 'created_at'>>;
+      };
     }
     Views: {
       [_ in never]: never

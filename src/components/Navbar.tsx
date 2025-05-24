@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -80,13 +79,8 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings">Settings</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-500 cursor-pointer">
@@ -173,12 +167,6 @@ export function Navbar() {
                 <div className="px-2 py-1 text-sm text-muted-foreground">
                   Signed in as <span className="font-medium">{user.email}</span>
                 </div>
-                <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                    <User className="h-5 w-5" />
-                    Profile
-                  </Button>
-                </Link>
                 <Button 
                   onClick={() => {
                     handleSignOut();
